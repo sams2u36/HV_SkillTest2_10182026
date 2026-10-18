@@ -1,0 +1,55 @@
+version: '1.0'
+
+services:
+  backend-dev:
+    build:
+      context: ./backend/dev
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/dev:/app
+    environment:
+      - FLASK_ENV=development
+      - PORT=3001
+    networks:
+      - ticket-net
+    restart: always
+
+  backend-prod:
+    build:
+      context: ./backend/prod
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./backend/prod:/app
+    environment:
+      - FLASK_ENV=production
+      - PORT=3002
+    networks:
+      - ticket-net
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_DEV_BACKEND_URL=http://localhost:3001
+      - REACT_APP_PROD_BACKEND_URL=http://localhost:3002
+    networks:
+      - ticket-net
+    depends_on:
+      - backend-dev
+      - backend-prod
+    restart: always
+
+networks:
+  ticket-net:
+    driver: bridge
